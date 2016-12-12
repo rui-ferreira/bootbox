@@ -104,12 +104,18 @@ var bootbox = window.bootbox || (function(document, $) {
         // callback or true to just close the dialog
         options.onEscape = options.onEscape || cb || true;
 
+        options.aria = $.extend({
+            role: "alertdialog",
+            label: "Alert"
+        }, options.aria);
+
         return that.dialog(str, {
             // only button (ok)
             "label"   : label,
             "icon"    : _icons.OK,
             "class"   : _btnClasses.OK,
-            "callback": cb
+            "callback": cb,
+            "attr"    : {"role": "button", "aria-label": label, "tabindex": 1}
         }, options);
     };
 
@@ -167,16 +173,21 @@ var bootbox = window.bootbox || (function(document, $) {
             "label"   : labelCancel,
             "icon"    : _icons.CANCEL,
             "class"   : _btnClasses.CANCEL,
-            "callback": cancelCallback
+            "callback": cancelCallback,
+            "attr"    : {"role": "button", "aria-label": labelCancel, "tabindex": 1}
         }, {
             // second button (confirm)
             "label"   : labelOk,
             "icon"    : _icons.CONFIRM,
             "class"   : _btnClasses.CONFIRM,
-            "callback": confirmCallback
+            "callback": confirmCallback,
+            "attr"    : {"role": "button", "aria-label": labelOk, "tabindex": 2}
         }], {
             // escape key bindings
-            "onEscape": cancelCallback
+            "onEscape": cancelCallback,
+            "aria": {
+                label: "Confirm"
+            }
         });
     };
 
@@ -250,13 +261,15 @@ var bootbox = window.bootbox || (function(document, $) {
             "label"   : labelCancel,
             "icon"    : _icons.CANCEL,
             "class"   : _btnClasses.CANCEL,
-            "callback":  cancelCallback
+            "callback":  cancelCallback,
+            "attr"    : {"role": "button", "aria-label": labelCancel, "tabindex": 1}
         }, {
             // second button (confirm)
             "label"   : labelOk,
             "icon"    : _icons.CONFIRM,
             "class"   : _btnClasses.CONFIRM,
-            "callback": confirmCallback
+            "callback": confirmCallback,
+            "attr"    : {"role": "button", "aria-label": labelOk, "tabindex": 2}
         }], {
             // prompts need a few extra options
             "header"  : header,
@@ -391,7 +404,22 @@ var bootbox = window.bootbox || (function(document, $) {
         // @see https://github.com/twitter/bootstrap/issues/4854
         // for an explanation of tabIndex=-1
 
-        var parts = ["<div class='bootbox modal' tabindex='-1' style='overflow:hidden;'>"];
+        options.aria = $.extend({
+            role: "dialog",
+            label: null,
+            labelledby: "bootbox-title",
+            describedby: "bootbox-desc"
+        }, options.aria);
+
+        var ariaOptsStr = "role='" + options.aria.role + "' aria-describedby='" + options.aria.describedby + "' ";
+        if(options.aria.label){
+            ariaOptsStr += "aria-label='" + options.aria.label + "' ";
+        }
+        else{
+            ariaOptsStr += "aria-labelledby='" + options.aria.labelledby + "' ";
+        }
+
+        var parts = ["<div class='bootbox modal' tabindex='-1' style='overflow:hidden;' " + ariaOptsStr + ">"];
 
         if (options['header']) {
             var closeButton = '';
@@ -428,6 +456,46 @@ var bootbox = window.bootbox || (function(document, $) {
         // now we've built up the div properly we can inject the content whether it was a string or a jQuery object
         div.find(".modal-body").html(str);
 
+        function onFocus(event) {
+            if (!div[0].contains(event.target)) {
+                event.stopPropagation();
+                div[0].focus();
+            }
+        }
+
+        /**
+         * While the dialog is active, check that focus is never set to an element that is not in the container and
+         * nothing else is ARIA visible.
+         */
+        function onCreated() {
+            document.addEventListener("focus", onFocus, true);
+
+            $(".modal-scrollable").siblings().each(function(idx, el){
+                var $el = $(el);
+                if(el.hasAttribute("aria-hidden")){
+                    $el.attr("original-aria-hidden", $el.attr("aria-hidden"));
+                }
+                $el.attr("aria-hidden", "true");
+            });
+        }
+
+        /**
+         * When closing the dialog, remove focus listener and put back original ARIA attributes on siblings.
+         */
+        function onClosed() {
+            document.removeEventListener("focus", onFocus, true);
+
+            $(".modal-scrollable").siblings().each(function(idx, el){
+                var $el = $(el);
+                if(el.hasAttribute("original-aria-hidden")){
+                    $el.attr("aria-hidden", $el.attr("original-aria-hidden"));
+                }
+                else{
+                    $el.removeAttr("aria-hidden");
+                }
+            });
+        }
+
         function onCancel(source) {
             // for now source is unused, but it will be in future
             var hideModal = null;
@@ -439,6 +507,8 @@ var bootbox = window.bootbox || (function(document, $) {
             if (hideModal !== false) {
                 div.modal('hide');
             }
+
+            onClosed();
         }
 
         // hook into the modal's keyup trigger to check for the escape key
@@ -471,6 +541,7 @@ var bootbox = window.bootbox || (function(document, $) {
             // child elements like tooltips
             if (e.target === this) {
                 div.remove();
+                onClosed();
             }
         });
 
@@ -531,6 +602,8 @@ var bootbox = window.bootbox || (function(document, $) {
         if (typeof options.show === 'undefined' || options.show === true) {
             div.modal("show");
         }
+
+        onCreated();
 
         return div;
     };
