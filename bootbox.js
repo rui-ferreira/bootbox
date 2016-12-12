@@ -15,6 +15,7 @@ var bootbox = window.bootbox || (function(document, $) {
         _btnClasses    = {},
         _icons         = {},
         _autoFocus     = true,
+        _restrictAriaFocus = false,
         /* last var should always be the public object we'll return */
         that           = {};
 
@@ -59,6 +60,13 @@ var bootbox = window.bootbox || (function(document, $) {
         _autoFocus = autoFocus;
         if (typeof _autoFocus !== 'boolean' || _autoFocus === null) {
             _autoFocus = true;
+        }
+    };
+
+    that.setRestrictAriaFocus = function(restrictAriaFocus) {
+        _restrictAriaFocus = restrictAriaFocus;
+        if (typeof _restrictAriaFocus !== 'boolean' || _restrictAriaFocus === null) {
+            _restrictAriaFocus = true;
         }
     };
 
@@ -468,6 +476,10 @@ var bootbox = window.bootbox || (function(document, $) {
          * nothing else is ARIA visible.
          */
         function onCreated() {
+            if(!_restrictAriaFocus){
+                return;
+            }
+
             document.addEventListener("focus", onFocus, true);
 
             $(".modal-scrollable").siblings().each(function(idx, el){
@@ -483,6 +495,10 @@ var bootbox = window.bootbox || (function(document, $) {
          * When closing the dialog, remove focus listener and put back original ARIA attributes on siblings.
          */
         function onClosed() {
+            if(!_restrictAriaFocus){
+                return;
+            }
+
             document.removeEventListener("focus", onFocus, true);
 
             $(".modal-scrollable").siblings().each(function(idx, el){
