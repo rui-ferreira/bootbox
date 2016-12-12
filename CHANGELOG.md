@@ -1,4 +1,8 @@
-## Latest Release: 3.4.0
+## Latest Release: 3.4.1
+
+* ARIA fiendly dialogs
+
+### 3.4.0
 
 * Add support for extra attributes for custom buttons in dialog
 * Option to disable focus on btn-primary
