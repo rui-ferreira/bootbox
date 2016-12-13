@@ -123,7 +123,7 @@ var bootbox = window.bootbox || (function(document, $) {
             "icon"    : _icons.OK,
             "class"   : _btnClasses.OK,
             "callback": cb,
-            "attr"    : {"role": "button", "aria-label": label, "tabindex": 1}
+            "attr"    : {"role": "button", "aria-label": label, "tabindex": 1000}
         }, options);
     };
 
@@ -182,14 +182,14 @@ var bootbox = window.bootbox || (function(document, $) {
             "icon"    : _icons.CANCEL,
             "class"   : _btnClasses.CANCEL,
             "callback": cancelCallback,
-            "attr"    : {"role": "button", "aria-label": labelCancel, "tabindex": 1}
+            "attr"    : {"role": "button", "aria-label": labelCancel, "tabindex": 1000}
         }, {
             // second button (confirm)
             "label"   : labelOk,
             "icon"    : _icons.CONFIRM,
             "class"   : _btnClasses.CONFIRM,
             "callback": confirmCallback,
-            "attr"    : {"role": "button", "aria-label": labelOk, "tabindex": 2}
+            "attr"    : {"role": "button", "aria-label": labelOk, "tabindex": 1001}
         }], {
             // escape key bindings
             "onEscape": cancelCallback,
@@ -270,14 +270,14 @@ var bootbox = window.bootbox || (function(document, $) {
             "icon"    : _icons.CANCEL,
             "class"   : _btnClasses.CANCEL,
             "callback":  cancelCallback,
-            "attr"    : {"role": "button", "aria-label": labelCancel, "tabindex": 1}
+            "attr"    : {"role": "button", "aria-label": labelCancel, "tabindex": 1000}
         }, {
             // second button (confirm)
             "label"   : labelOk,
             "icon"    : _icons.CONFIRM,
             "class"   : _btnClasses.CONFIRM,
             "callback": confirmCallback,
-            "attr"    : {"role": "button", "aria-label": labelOk, "tabindex": 2}
+            "attr"    : {"role": "button", "aria-label": labelOk, "tabindex": 1001}
         }], {
             // prompts need a few extra options
             "header"  : header,
@@ -406,12 +406,6 @@ var bootbox = window.bootbox || (function(document, $) {
             callbacks[i] = callback;
         }
 
-        // @see https://github.com/makeusabrew/bootbox/issues/46#issuecomment-8235302
-        // and https://github.com/twitter/bootstrap/issues/4474
-        // for an explanation of the inline overflow: hidden
-        // @see https://github.com/twitter/bootstrap/issues/4854
-        // for an explanation of tabIndex=-1
-
         options.aria = $.extend({
             role: "dialog",
             label: null,
@@ -427,6 +421,11 @@ var bootbox = window.bootbox || (function(document, $) {
             ariaOptsStr += "aria-labelledby='" + options.aria.labelledby + "' ";
         }
 
+        // @see https://github.com/makeusabrew/bootbox/issues/46#issuecomment-8235302
+        // and https://github.com/twitter/bootstrap/issues/4474
+        // for an explanation of the inline overflow: hidden
+        // @see https://github.com/twitter/bootstrap/issues/4854
+        // for an explanation of tabIndex=-1
         var parts = ["<div class='bootbox modal' tabindex='-1' style='overflow:hidden;' " + ariaOptsStr + ">"];
 
         if (options['header']) {
